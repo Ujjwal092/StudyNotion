@@ -1,34 +1,37 @@
 import React from "react";
+import CountUp from "react-countup";
 
 const Stats = [
-  { count: "5K", label: "Active Students" },
-  { count: "10+", label: "Mentors" },
-  { count: "200+", label: "Courses" },
-  { count: "50+", label: "Awards" },
+  { count: 5000, label: "Active Students", suffix: "+" },
+  { count: 10, label: "Mentors", suffix: "+" },
+  { count: 200, label: "Courses", suffix: "+" },
+  { count: 50, label: "Awards", suffix: "+" },
 ];
 
-const StatsComponenet = () => {
+const StatsComponent = () => {
   return (
-    <div className="bg-richblack-700">
-      {/* Stats */}
-      <div className="flex flex-col gap-10 justify-between w-11/12 max-w-maxContent text-white mx-auto ">
-        <div className="grid grid-cols-2 md:grid-cols-4 text-center">
-          {Stats.map((data, index) => {
-            return (
-              <div className="flex flex-col py-10" key={index}>
-                <h1 className="text-[30px] font-bold text-richblack-5">
-                  {data.count}
-                </h1>
-                <h2 className="font-semibold text-[16px] text-richblack-500">
-                  {data.label}
-                </h2>
-              </div>
-            );
-          })}
-        </div>
+    <section className="bg-richblack-800 py-20">
+      <div className="w-11/12 max-w-maxContent mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        {Stats.map((data, index) => (
+          <div
+            key={index}
+            className="p-6 rounded-lg bg-richblack-700 
+            hover:bg-richblack-600 transition duration-300 
+            shadow-md hover:shadow-xl"
+          >
+            <h2 className="text-4xl font-bold text-yellow-50">
+              <CountUp end={data.count} duration={2.5} separator="," />
+              {data.suffix}
+            </h2>
+
+            <p className="text-richblack-300 mt-2 text-sm md:text-base">
+              {data.label}
+            </p>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 };
 
-export default StatsComponenet;
+export default StatsComponent;

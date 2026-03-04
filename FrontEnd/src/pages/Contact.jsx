@@ -1,13 +1,14 @@
-import React from "react"
+import React from "react";
 
-import Footer from "../components/common/Footer"
-import ContactDetails from "../components/ContactPage/ContactDetails"
-import ContactForm from "../components/ContactPage/ContactForm"
+import Footer from "../components/common/Footer";
+import ContactDetails from "../components/ContactPage/ContactDetails";
+import ContactForm from "../components/ContactPage/ContactForm";
 
 const Contact = () => {
   return (
-    <div>
-      <div className="mx-auto mt-20 flex w-11/12 max-w-maxContent flex-col justify-between gap-10 text-white lg:flex-row">
+    <div className="bg-richblack-900 text-white">
+      {/* Contact Section */}
+      <section className="mx-auto mt-20 w-11/12 max-w-maxContent flex flex-col lg:flex-row gap-10">
         {/* Contact Details */}
         <div className="lg:w-[40%]">
           <ContactDetails />
@@ -17,17 +18,22 @@ const Contact = () => {
         <div className="lg:w-[60%]">
           <ContactForm />
         </div>
-      </div>
-      <div className="relative mx-auto my-20 flex w-11/12 max-w-maxContent flex-col items-center justify-between gap-8 bg-richblack-900 text-white">
-        {/* Reviws from Other Learner */}
-        <h1 className="text-center text-4xl font-semibold mt-8">
+      </section>
+
+      {/* Reviews Section */}
+      <section className="mx-auto my-24 w-11/12 max-w-maxContent flex flex-col items-center gap-8">
+        <h1 className="text-4xl font-semibold text-center">
           Reviews from other learners
         </h1>
+
+        {/* Future Slider */}
         {/* <ReviewSlider /> */}
-      </div>
+      </section>
+
+      <section className="mx-auto my-20  "></section>
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default Contact
+export default Contact;

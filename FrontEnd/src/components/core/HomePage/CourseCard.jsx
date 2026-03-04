@@ -1,48 +1,61 @@
 import React from "react";
 
-// Importing React Icons
+// Icons
 import { HiUsers } from "react-icons/hi";
 import { ImTree } from "react-icons/im";
 
 const CourseCard = ({ cardData, currentCard, setCurrentCard }) => {
+  const isActive = currentCard === cardData?.heading;
+
   return (
     <div
-      className={`w-[360px] lg:w-[30%] ${
-        currentCard === cardData?.heading
+      className={`w-full max-w-[360px] rounded-xl overflow-hidden
+      cursor-pointer transition-all duration-300
+      hover:-translate-y-2 hover:shadow-2xl
+      ${
+        isActive
           ? "bg-white shadow-[12px_12px_0_0] shadow-yellow-50"
           : "bg-richblack-800"
-      }  text-richblack-25 h-[300px] box-border cursor-pointer`}
+      }`}
       onClick={() => setCurrentCard(cardData?.heading)}
     >
-      <div className="border-b-[2px] border-richblack-400 border-dashed h-[80%] p-6 flex flex-col gap-3">
-        <div
-          className={` ${
-            currentCard === cardData?.heading && "text-richblack-800"
-          } font-semibold text-[20px]`}
+      {/* Top Section */}
+      <div
+        className="border-b border-dashed border-richblack-400
+        p-6 flex flex-col gap-3 h-[200px]"
+      >
+        <h3
+          className={`font-semibold text-xl ${
+            isActive ? "text-richblack-900" : "text-richblack-5"
+          }`}
         >
           {cardData?.heading}
-        </div>
+        </h3>
 
-        <div className="text-richblack-400">{cardData?.description}</div>
+        <p
+          className={`text-sm ${
+            isActive ? "text-richblack-700" : "text-richblack-300"
+          }`}
+        >
+          {cardData?.description}
+        </p>
       </div>
 
+      {/* Bottom Section */}
       <div
-        className={`flex justify-between ${
-          currentCard === cardData?.heading
-            ? "text-blue-300"
-            : "text-richblack-300"
-        } px-6 py-3 font-medium`}
+        className={`flex justify-between items-center px-6 py-4 text-sm font-medium
+        ${isActive ? "text-blue-500" : "text-richblack-300"}`}
       >
         {/* Level */}
-        <div className="flex items-center gap-2 text-[16px]">
+        <div className="flex items-center gap-2">
           <HiUsers />
-          <p>{cardData?.level}</p>
+          <span>{cardData?.level}</span>
         </div>
 
-        {/* Flow Chart */}
-        <div className="flex items-center gap-2 text-[16px]">
+        {/* Lessons */}
+        <div className="flex items-center gap-2">
           <ImTree />
-          <p>{cardData?.lessonNumber} Lesson</p>
+          <span>{cardData?.lessonNumber} Lesson</span>
         </div>
       </div>
     </div>
