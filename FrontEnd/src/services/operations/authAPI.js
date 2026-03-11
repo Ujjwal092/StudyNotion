@@ -12,6 +12,7 @@ const {
   SENDOTP_API,
   SIGNUP_API,
   LOGIN_API,
+  GOOGLE_LOGIN_API,
   RESETPASSTOKEN_API,
   RESETPASSWORD_API,
 } = endpoints;
@@ -128,22 +129,38 @@ export const googleLogin = (navigate) => async (dispatch) => {
     const name = user.displayName || "";
     const nameParts = name.split(" ");
 
-    const userData = {
-      firstName: nameParts[0],
-      lastName: nameParts.slice(1).join(" "),
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(" ");
+
+    //  Call backend Google login API
+    const response = await apiConnector("POST", endpoints.GOOGLE_LOGIN_API, {
       email: user.email,
+      firstName,
+      lastName,
       image: user.photoURL,
-    };
+    });
 
+    if (!response.data.success) {
+      throw new Error("Google Login Failed");
+    }
+
+    const token = response.data.token;
+    const userData = response.data.user;
+
+    //  Save in Redux
+    dispatch(setToken(token));
     dispatch(setUser(userData));
-    dispatch(setToken("googleLoginToken"));
 
-    localStorage.setItem("user", JSON.stringify(userData)); //stuck here
-    localStorage.setItem("token", "googleLoginToken"); //stuck here
+    // Save in localStorage
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    toast.success("Google Login Successful");
 
     navigate("/dashboard/my-profile");
   } catch (error) {
     console.log("Google Login Error:", error);
+    toast.error("Google Login Failed");
   }
 };
 

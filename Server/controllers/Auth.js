@@ -146,12 +146,12 @@ exports.login = async (req, res) => {
         process.env.JWT_SECRET,
         {
           expiresIn: "24h",
-        }
+        },
       );
 
       // Save token to user document in database
       user.token = token;
-      user.password = undefined;
+      user.password = undefined; //dont save pass in db instead hashed pass will save
       // Set cookie for token and return success response
       const options = {
         expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -203,9 +203,9 @@ exports.sendotp = async (req, res) => {
       specialChars: false,
     });
     const result = await OTP.findOne({ otp: otp });
-    console.log("Result is Generate OTP Func");
-    console.log("OTP", otp);
-    console.log("Result", result);
+    // console.log("Result is Generate OTP Func");
+    // console.log("OTP", otp);
+    // console.log("Result", result);
     while (result) {
       otp = otpGenerator.generate(6, {
         upperCaseAlphabets: false,
@@ -237,7 +237,7 @@ exports.changePassword = async (req, res) => {
     // Validate old password
     const isPasswordMatch = await bcrypt.compare(
       oldPassword,
-      userDetails.password //actual and jo user ne dala hai wo
+      userDetails.password, //actual and jo user ne dala hai wo
     );
     if (!isPasswordMatch) {
       // If old password does not match, return a 401 (Unauthorized) error
@@ -261,7 +261,7 @@ exports.changePassword = async (req, res) => {
     const updatedUserDetails = await User.findByIdAndUpdate(
       req.user.id,
       { password: encryptedPassword },
-      { new: true }
+      { new: true },
     );
 
     // Send notification email
@@ -270,8 +270,8 @@ exports.changePassword = async (req, res) => {
         updatedUserDetails.email,
         passwordUpdated(
           updatedUserDetails.email,
-          `Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
-        )
+          `Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`,
+        ),
       );
       console.log("Email sent successfully:", emailResponse.response);
     } catch (error) {
@@ -295,6 +295,69 @@ exports.changePassword = async (req, res) => {
       success: false,
       message: "Error occurred while updating password",
       error: error.message,
+    });
+  }
+};
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { email, firstName, lastName, image } = req.body;
+    // console.log("GOOGLE LOGIN BODY:", req.body);
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+    //if user already exists
+    let user = await User.findOne({ email }).populate("additionalDetails");
+
+    //if user doesnt exists
+    if (!user) {
+      const profileDetails = await Profile.create({
+        gender: null,
+        dateOfBirth: null,
+        about: null,
+        contactNumber: null,
+      });
+      user = await User.create({
+        firstName,
+        lastName,
+        email,
+        image,
+        accountType: "Student", //coz google login se koi directly admin bn sakta h
+        additionalDetails: profileDetails._id,
+      });
+    }
+    //create jwt token
+    const token = jwt.sign(
+      {
+        email: user.email,
+        id: user._id,
+        accountType: user.accountType,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "24h",
+      },
+    );
+    user.password = undefined;
+    // console.log("TOKEN GENERATED:", token);
+    const options = {
+      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+    };
+    return res.cookie("token", token, options).status(200).json({
+      success: true,
+      token,
+      user,
+      message: "Google Login Successful",
+    });
+  } catch (error) {
+    console.log("Google login error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Google login failed",
     });
   }
 };

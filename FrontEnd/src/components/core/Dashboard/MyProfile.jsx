@@ -98,6 +98,7 @@ export default function MyProfile() {
               <p className="mb-2 text-sm text-richblack-600">Email</p>
               <p className="text-sm font-medium text-richblack-5">
                 {user?.email}
+                {/* all these data like email name .. we prepared in Profile model in backend */}
               </p>
             </div>
             <div>
