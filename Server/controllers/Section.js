@@ -1,12 +1,14 @@
 const Section = require("../models/Section");
 const Course = require("../models/Course");
+const SubSection = require("../models/SubSection");
+
 // CREATE a new section
 exports.createSection = async (req, res) => {
   try {
     // Extract the required properties from the request body
     const { sectionName, courseId } = req.body;
 
-    // input validation
+    // Validate the input
     if (!sectionName || !courseId) {
       return res.status(400).json({
         success: false,
@@ -25,7 +27,7 @@ exports.createSection = async (req, res) => {
           courseContent: newSection._id,
         },
       },
-      { new: true }
+      { new: true },
     )
       .populate({
         path: "courseContent",
@@ -52,19 +54,31 @@ exports.createSection = async (req, res) => {
 };
 
 // UPDATE a section
+
 exports.updateSection = async (req, res) => {
   try {
-    const { sectionName, sectionId } = req.body;
+    const { sectionName, sectionId, courseId } = req.body;
     const section = await Section.findByIdAndUpdate(
       sectionId,
-      { sectionName: sectionName },
-      { new: true }
+      { sectionName },
+      { new: true },
     );
-    console.log(section, "Hellllllllloo");
+
+    //full course data and yhi data frontend use krega to reflect updated course on UI
+    //populate kr diya h section and subsection ko and nested populate kr rhe. populate means refrence ID se actual data
+    const course = await Course.findById(courseId)
+      .populate({
+        path: "courseContent", //section -> courseContent
+        populate: {
+          path: "subSection",
+        },
+      })
+      .exec();
+
     res.status(200).json({
       success: true,
-      message: "Section updated ",
-      data: section,
+      message: section,
+      data: course,
     });
   } catch (error) {
     console.error("Error updating section:", error);
@@ -78,13 +92,43 @@ exports.updateSection = async (req, res) => {
 // DELETE a section
 exports.deleteSection = async (req, res) => {
   try {
-    //HW -> req.params -> test
-    const { sectionId } = req.params;
+    const { sectionId, courseId } = req.body;
+    //course ke andr section and subsection  pada h toh section ki id leke remove krdo array of courseContent jo ki Section h usse toh will get ans
+
+    //courseContent -> Section
+    await Course.findByIdAndUpdate(courseId, {
+      $pull: {
+        courseContent: sectionId,
+      },
+    });
+    const section = await Section.findById(sectionId);
+    console.log(sectionId, courseId);
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not Found",
+      });
+    }
+
+    //delete sub section
+    await SubSection.deleteMany({ _id: { $in: section.subSection } });
+
     await Section.findByIdAndDelete(sectionId);
-    //HW -> Course ko bhi update karo
+
+    //find the updated course and return
+    const course = await Course.findById(courseId)
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+        },
+      })
+      .exec();
+
     res.status(200).json({
       success: true,
       message: "Section deleted",
+      data: course,
     });
   } catch (error) {
     console.error("Error deleting section:", error);

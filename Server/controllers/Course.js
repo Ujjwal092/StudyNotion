@@ -64,9 +64,9 @@ exports.createCourse = async (req, res) => {
     // Upload the Thumbnail to Cloudinary
     const thumbnailImage = await uploadImageToCloudinary(
       thumbnail,
-      process.env.FOLDER_NAME
+      process.env.FOLDER_NAME,
     );
-    console.log(thumbnailImage);
+    // console.log(thumbnailImage);
     // Create a new course with the given details
     const newCourse = await Course.create({
       courseName,
@@ -91,7 +91,7 @@ exports.createCourse = async (req, res) => {
           courses: newCourse._id,
         },
       },
-      { new: true }
+      { new: true },
     );
     // Add the new course to the Categories
     await Category.findByIdAndUpdate(
@@ -101,7 +101,7 @@ exports.createCourse = async (req, res) => {
           course: newCourse._id,
         },
       },
-      { new: true }
+      { new: true },
     );
     // Return the new course and a success message
     res.status(200).json({
@@ -130,8 +130,8 @@ exports.getAllCourses = async (req, res) => {
         thumbnail: true,
         instructor: true,
         ratingAndReviews: true,
-        studentsEnroled: true,
-      }
+        studentsEnrolled: true,
+      },
     )
       .populate("instructor")
       .exec();

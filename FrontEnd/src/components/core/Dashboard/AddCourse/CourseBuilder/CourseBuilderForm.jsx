@@ -172,7 +172,7 @@ const CourseBuilderForm = () => {
       {course?.courseContent?.length > 0 && (
         <div className="mt-8">
           <NestedView
-            handleChangeEditSectionName={handleChangeEditSectionName}
+            handleChangeEditSectionName={handleChangeEditSectionName} //prop is send to children for edit section name inside subsection there is pencil button on which we will click
           />
         </div>
       )}
