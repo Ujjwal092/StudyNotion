@@ -1,266 +1,252 @@
-import React, { useEffect, useState } from "react";
-import logo from "../../assets/Logo/Logo-Full-Light.png";
-import { Link, matchPath, useLocation } from "react-router-dom";
-import { NavbarLinks } from "../../data/navbar-links";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import {
-  AiOutlineShoppingCart,
   AiOutlineMenu,
+  AiOutlineShoppingCart,
   AiOutlineClose,
-  AiOutlineSearch,
 } from "react-icons/ai";
-import ProfileDropDown from "../core/Auth/ProfileDropDown";
+import { BsChevronDown } from "react-icons/bs";
+import { useSelector } from "react-redux";
+import { Link, matchPath, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+
+import logo from "../../assets/Logo/Logo-Full-Light.png";
+import { NavbarLinks } from "../../data/navbar-links";
 import { apiConnector } from "../../services/apiconnector";
 import { categories } from "../../services/apis";
-import { IoIosArrowDropdownCircle } from "react-icons/io";
+import { ACCOUNT_TYPE } from "../../utils/constants";
+import ProfileDropdown from "../core/Auth/ProfileDropDown";
 
-const Navbar = () => {
-  const fallbackLinks = [
-    { name: "Python", slug: "python" },
-    { name: "Web Dev", slug: "web-development" },
-  ];
-
-  const [catalogLinks, setCatalogLinks] = useState([]);
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+function Navbar() {
   const { token } = useSelector((state) => state.auth);
   const { user } = useSelector((state) => state.profile);
   const { totalItems } = useSelector((state) => state.cart);
   const location = useLocation();
 
+  const [subLinks, setSubLinks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Fetch categories
   useEffect(() => {
-    const fetchSublinks = async () => {
+    const fetchCategories = async () => {
       try {
-        const result = await apiConnector("GET", categories.CATEGORIES_API);
-        setCatalogLinks(result?.data?.data || fallbackLinks);
+        setLoading(true);
+        const res = await apiConnector("GET", categories.CATEGORIES_API);
+        setSubLinks(res?.data?.data || []);
       } catch (error) {
-        setCatalogLinks(fallbackLinks);
+        console.log("Could not fetch Categories.", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchSublinks();
+    fetchCategories();
   }, []);
+
+  // Disable scroll when mobile menu open
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "auto";
+  }, [mobileMenuOpen]);
 
   const matchRoute = (route) => {
     return matchPath({ path: route }, location.pathname);
   };
 
   return (
-    <div className="relative flex h-16 items-center justify-center border-b border-richblack-700 bg-richblack-900">
-      <div className="flex w-11/12 max-w-maxContent items-center justify-between">
-        {/* Logo */}
-        <Link to="/">
-          <img src={logo} width={160} alt="logo" />
-        </Link>
+    <>
+      {/* Navbar */}
+      <div
+        className={`flex h-14 items-center justify-center border-b border-richblack-700 ${
+          location.pathname !== "/" ? "bg-richblack-800" : ""
+        }`}
+      >
+        <div className="flex w-11/12 max-w-maxContent items-center justify-between">
+          {/* Logo */}
+          <Link to="/">
+            <img src={logo} alt="Logo" width={160} />
+          </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden lg:block">
-          <ul className="flex gap-x-6 text-richblack-25 items-center">
-            {NavbarLinks.map((link, index) => (
-              <li key={index}>
-                {link.title === "Catalog" ? (
-                  <div className="relative flex items-center gap-2 group cursor-pointer">
-                    <p>{link.title}</p>
-                    <IoIosArrowDropdownCircle />
-
+          {/* Desktop Nav */}
+          <nav className="hidden md:block">
+            <ul className="flex gap-x-6 text-richblack-25">
+              {NavbarLinks.map((link) => (
+                <li key={link.title}>
+                  {link.title === "Catalog" ? (
                     <div
-                      className="invisible absolute left-1/2 top-full mt-3
-                      -translate-x-1/2 flex flex-col rounded-md bg-richblack-5 p-4 
-                      text-richblack-900 opacity-0 transition-all duration-200 
-                      group-hover:visible group-hover:opacity-100 
-                      lg:w-[300px] z-50 shadow-lg"
-                    >
-                      {Array.isArray(catalogLinks) &&
-                      catalogLinks.length > 0 ? (
-                        catalogLinks.map((item) => (
-                          <Link to={`/catalog/${item.slug}`} key={item.slug}>
-                            <p className="hover:text-yellow-25 py-1">
-                              {item.name}
-                            </p>
-                          </Link>
-                        ))
-                      ) : (
-                        <p className="text-center">Loading...</p>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <Link to={link?.path}>
-                    <p
-                      className={`transition-all duration-200 ${
-                        matchRoute(link?.path)
+                      className={`group relative flex cursor-pointer items-center gap-1 ${
+                        matchRoute("/catalog/:catalogName")
                           ? "text-yellow-25"
-                          : "hover:text-yellow-50"
+                          : "text-richblack-25"
                       }`}
                     >
-                      {link.title}
-                    </p>
-                  </Link>
+                      <p>{link.title}</p>
+                      <BsChevronDown />
+
+                      {/* Dropdown */}
+                      <div className="invisible absolute left-[50%] top-[50%] z-[1000] flex w-[250px] translate-x-[-50%] translate-y-[3em] flex-col rounded-lg bg-richblack-5 p-4 text-richblack-900 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-[1.65em] group-hover:opacity-100">
+                        {loading ? (
+                          <p className="text-center">Loading...</p>
+                        ) : subLinks.length > 0 ? (
+                          subLinks.map((subLink) => (
+                            <Link
+                              key={subLink._id}
+                              to={`/catalog/${subLink.name
+                                .split(" ")
+                                .join("-")
+                                .toLowerCase()}`}
+                              className="rounded-lg py-3 px-2 hover:bg-richblack-50"
+                            >
+                              {subLink.name}
+                            </Link>
+                          ))
+                        ) : (
+                          <p className="text-center">No Courses Found</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link to={link?.path}>
+                      <p
+                        className={`${
+                          matchRoute(link?.path)
+                            ? "text-yellow-25"
+                            : "text-richblack-25"
+                        }`}
+                      >
+                        {link.title}
+                      </p>
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Desktop Right */}
+          <div className="hidden md:flex items-center gap-x-4">
+            {user && user?.accountType !== ACCOUNT_TYPE.INSTRUCTOR && (
+              <Link to="/dashboard/cart" className="relative">
+                <AiOutlineShoppingCart className="text-2xl text-richblack-100" />
+                {totalItems > 0 && (
+                  <span className="absolute -bottom-2 -right-2 grid h-5 w-5 place-items-center rounded-full bg-richblack-600 text-xs text-yellow-100">
+                    {totalItems}
+                  </span>
                 )}
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Desktop Right Side */}
-        <div className="hidden lg:flex gap-x-5 items-center">
-          {/* Search - Only When Logged In */}
-          {token && (
-            <Link to="/search">
-              <AiOutlineSearch
-                size={22}
-                className="text-richblack-50 hover:text-yellow-25 transition cursor-pointer"
-              />
-            </Link>
-          )}
-
-          {/* Cart - Hide Only For Instructor */}
-          {user?.accountType !== "Instructor" && (
-            <Link
-              to={token ? "/dashboard/cart" : "/login"}
-              className="relative"
-            >
-              <AiOutlineShoppingCart
-                size={22}
-                className="text-richblack-50 hover:text-yellow-25 transition"
-              />
-              {totalItems > 0 && (
-                <span
-                  className="absolute -top-2 -right-2 
-                  bg-yellow-25 text-black text-xs px-2 py-1 rounded-full animate-pulse"
-                >
-                  {totalItems}
-                </span>
-              )}
-            </Link>
-          )}
-
-          {!token && (
-            <>
-              <Link to="/login">
-                <button
-                  className="border border-richblack-700 
-                  bg-richblack-800 px-3 py-2 text-richblack-100 
-                  rounded-md hover:bg-richblack-700 transition"
-                >
-                  Log in
-                </button>
               </Link>
+            )}
 
-              <Link to="/signup">
-                <button
-                  className="bg-yellow-25 text-black 
-                  px-3 py-2 rounded-md hover:bg-yellow-50 transition"
-                >
-                  Sign Up
-                </button>
-              </Link>
-            </>
-          )}
-
-          {token && <ProfileDropDown />}
-        </div>
-
-        {/* Mobile Hamburger */}
-        <div className="lg:hidden">
-          {mobileOpen ? (
-            <AiOutlineClose
-              size={28}
-              onClick={() => setMobileOpen(false)}
-              className="cursor-pointer text-richblack-25"
-            />
-          ) : (
-            <AiOutlineMenu
-              size={28}
-              onClick={() => setMobileOpen(true)}
-              className="cursor-pointer text-richblack-25"
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setMobileOpen(false)}
-        ></div>
-      )}
-
-      {/* Mobile Drawer */}
-      <div
-        className={`fixed top-0 left-0 h-full w-[75%] max-w-[300px] 
-        bg-richblack-900 z-50 transform transition-transform duration-300
-        ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        <div className="p-6 space-y-6">
-          <div className="flex justify-end">
-            <AiOutlineClose
-              size={26}
-              onClick={() => setMobileOpen(false)}
-              className="cursor-pointer"
-            />
-          </div>
-
-          {/* Links */}
-          <div className="flex flex-col space-y-4 text-richblack-25 text-lg">
-            {NavbarLinks.map((link, index) => (
-              <Link
-                key={index}
-                to={link?.path}
-                onClick={() => setMobileOpen(false)}
-                className="hover:text-yellow-25"
-              >
-                {link.title}
-              </Link>
-            ))}
-
-            {/* Search - Only When Logged In */}
-            {token && (
-              <Link
-                to="/search"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 hover:text-yellow-25"
-              >
-                <AiOutlineSearch size={20} />
-                Search
-              </Link>
+            {token === null ? (
+              <>
+                <Link to="/login">
+                  <button className="px-3 py-2 border border-richblack-700 rounded text-richblack-100">
+                    Log in
+                  </button>
+                </Link>
+                <Link to="/signup">
+                  <button className="px-3 py-2 border border-richblack-700 rounded text-richblack-100">
+                    Sign up
+                  </button>
+                </Link>
+              </>
+            ) : (
+              <ProfileDropdown />
             )}
           </div>
 
-          <div className="border-t border-richblack-700"></div>
-
-          {/* Cart */}
-          {user?.accountType !== "Instructor" && (
-            <Link
-              to={token ? "/dashboard/cart" : "/login"}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 text-yellow-25"
-            >
-              <AiOutlineShoppingCart size={20} />
-              Cart ({totalItems})
-            </Link>
-          )}
-
-          {/* Auth Buttons */}
-          {!token && (
-            <div className="flex flex-col space-y-3">
-              <Link to="/login" onClick={() => setMobileOpen(false)}>
-                <button className="w-full py-2 border border-richblack-700 text-richblack-25 rounded-md">
-                  Log in
-                </button>
-              </Link>
-
-              <Link to="/signup" onClick={() => setMobileOpen(false)}>
-                <button className="w-full py-2 bg-yellow-25 text-black rounded-md">
-                  Sign Up
-                </button>
-              </Link>
-            </div>
-          )}
+          {/* Mobile Toggle */}
+          <button
+            className="md:hidden z-[110]"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <AiOutlineClose size={24} />
+            ) : (
+              <AiOutlineMenu size={24} />
+            )}
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              className="fixed inset-0 bg-black/50 z-[100]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Sidebar */}
+            <motion.div
+              className="fixed top-0 left-0 h-full w-[70%] max-w-[300px] bg-richblack-800 z-[110] p-6"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="mb-6">
+                <img src={logo} alt="StudyNotion Logo" className="w-[140px]" />
+              </div>
+
+              {/* Links */}
+              <ul className="flex flex-col gap-4 text-richblack-25">
+                {NavbarLinks.map((link) => (
+                  <li key={link.title}>
+                    <Link
+                      to={link?.path}
+                      className="hover:text-yellow-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="my-6 h-[1px] bg-richblack-700" />
+
+              {/* Auth */}
+              {token === null ? (
+                <div className="flex flex-col gap-3">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <button className="w-full bg-yellow-50 text-black py-2 rounded">
+                      Log in
+                    </button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                    <button className="w-full border border-richblack-600 py-2 rounded text-white">
+                      Sign up
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-3 py-2 rounded-md  text-yellow-50 hover:bg-richblack-700 transition-all duration-200"
+                  >
+                    Dashboard
+                  </Link>
+
+                  <Link
+                    to="/dashboard/cart"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-3 py-2 rounded-md text-yellow-50 hover:bg-richblack-700 transition-all duration-200"
+                  >
+                    Cart
+                  </Link>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
-};
+}
 
 export default Navbar;
