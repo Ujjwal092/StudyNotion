@@ -4,27 +4,24 @@ const {
   resetPasswordTemplate,
 } = require("../mail/templates/resetPasswordTemplate ");
 
-await mailSender(
-  email,
-  "Password Reset",
-  resetPasswordTemplate(user.firstName, url),
-);
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
 exports.resetPasswordToken = async (req, res) => {
   try {
     const email = req.body.email;
+
     const user = await User.findOne({ email: email });
     if (!user) {
       return res.json({
         success: false,
-        message: `This Email: ${email} is not Registered With Us Enter a Valid Email `,
+        message: `This Email: ${email} is not Registered With Us`,
       });
     }
+
     const token = crypto.randomBytes(20).toString("hex");
 
-    const updatedDetails = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { email: email },
       {
         token: token,
@@ -32,26 +29,25 @@ exports.resetPasswordToken = async (req, res) => {
       },
       { new: true },
     );
-    console.log("DETAILS", updatedDetails);
 
     const url = `https://studynotion-sandy-seven.vercel.app/reset-password/${token}`;
 
+    //  YAHI pe mail bhejna hai
     await mailSender(
       email,
       "Password Reset",
-      `Your Link for email verification is ${url}. Please click this url to reset your password.`,
+      resetPasswordTemplate(user.firstName, url),
     );
 
     res.json({
       success: true,
-      message:
-        "Email Sent Successfully, Please Check Your Email to Continue Further",
+      message: "Email Sent Successfully",
     });
   } catch (error) {
     return res.json({
-      error: error.message,
       success: false,
-      message: `Some Error in Sending the Reset Message`,
+      message: "Error sending reset email",
+      error: error.message,
     });
   }
 };
