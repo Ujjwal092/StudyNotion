@@ -15,12 +15,12 @@ const mailSender = async (email, title, body) => {
       },
       {
         headers: {
-          "api-key": process.env.BREVO_API_KEY,
+          "api-key": process.env.MAIL_PASS,
           "Content-Type": "application/json",
         },
       },
     );
-
+    console.log("API KEY:", process.env.MAIL_PASS);
     console.log("MAIL SENT:", response.data);
     return response.data;
   } catch (error) {
