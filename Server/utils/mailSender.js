@@ -4,8 +4,8 @@ const mailSender = async (email, title, body) => {
   try {
     let transporter = nodemailer.createTransport({
       host: "smtp-relay.brevo.com",
-      port: 587, //  MUST
-      secure: false, //  MUST
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
@@ -28,5 +28,4 @@ const mailSender = async (email, title, body) => {
     console.log("MAIL ERROR:", error.message);
   }
 };
-
 module.exports = mailSender;
