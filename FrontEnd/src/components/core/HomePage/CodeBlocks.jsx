@@ -17,10 +17,10 @@ const CodeBlocks = ({
 
   return (
     <div
-      className={`flex ${position} my-20 justify-between gap-10 items-center`}
+      className={`flex flex-col lg:flex-row ${position} my-20 justify-between gap-10 items-center`}
     >
       {/* TEXT SECTION */}
-      <div className="w-[50%] flex flex-col gap-8">
+      <div className="w-full lg:w-[50%] flex flex-col gap-8">
         {heading}
 
         <div className="text-richblack-300 font-medium">{subheading}</div>
@@ -43,7 +43,7 @@ const CodeBlocks = ({
       <div className="relative w-full lg:w-[500px] flex justify-center items-center">
         {/* GLOW */}
         <div
-          className={`absolute w-[600px] h-[600px] rounded-full blur-[180px] opacity-60
+          className={`absolute w-[600px] h-[600px] rounded-full blur-[180px] opacity-60 pointer-events-none
       ${glowColor === "yellow" ? "bg-yellow-50" : "bg-blue-200"}`}
           style={{
             top: "50%",
@@ -77,13 +77,10 @@ const CodeBlocks = ({
             className={`flex-1 font-mono text-sm leading-7 h-[275px] overflow-hidden ${codeColor}`}
           >
             <TypeAnimation
-              sequence={[
-                codeblock,
-                1000,
-                () => {}, // prevents crash loop
-              ]}
+              sequence={[codeblock, 1000, "", 500]}
               repeat={Infinity}
               cursor={true}
+              style={{ whiteSpace: "pre-line" }}
               speed={60}
             />
           </div>

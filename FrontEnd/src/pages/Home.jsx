@@ -103,15 +103,15 @@ const Home = () => {
             active: false,
           }}
           codeblock={`<!DOCTYPE html>
-<html>
-<head>
-  <title>Nexora</title>
-</head>
-<body>
-  <h1>Build Your Future</h1>
-  <p>Code with confidence.</p>
-</body>
-</html>`}
+                    <html>
+                    <head>
+                      <title>Nexora</title>
+                    </head>
+                    <body>
+                      <h1>Build Your Future</h1>
+                      <p>Code with confidence.</p>
+                    </body>
+                    </html>`}
           codeColor="text-blue-25"
         />
 
@@ -137,16 +137,13 @@ const Home = () => {
             active: false,
           }}
           codeblock={`def greet(name):
-    course = "Nexora Pro"
-    level = "Beginner"
-
-    print(f"Welcome {name} 🚀")
-    print(f"Course: {course}")
-    print(f"Level: {level}")
-
-    return "Start Learning"
-
-greet("Future Developer")`}
+                      course = "Nexora Pro"
+                      level = "Beginner"
+                      print(f"Welcome {name} 🚀")
+                      print(f"Course: {course}")
+                      print(f"Level: {level}")
+                      return "Start Learning"
+                      greet("Future Developer")`}
           codeColor="text-yellow-25"
         />
 
