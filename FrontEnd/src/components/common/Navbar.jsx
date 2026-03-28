@@ -160,7 +160,7 @@ function Navbar() {
             {mobileMenuOpen ? (
               <AiOutlineClose size={24} />
             ) : (
-              <AiOutlineMenu size={24} />
+              <AiOutlineMenu className="text-yellow-50 " size={24} />
             )}
           </button>
         </div>

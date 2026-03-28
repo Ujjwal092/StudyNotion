@@ -42,7 +42,9 @@ OTPSchema.pre("save", async function (next) {
 
   if (this.isNew) {
     try {
-      await sendVerificationEmail(this.email, this.otp);
+      setTimeout(() => {
+        sendVerificationEmail(this.email, this.otp);
+      }, 0);
     } catch (err) {
       console.log("Email failed but continuing...");
     }
