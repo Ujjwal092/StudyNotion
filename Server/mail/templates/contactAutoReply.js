@@ -50,7 +50,7 @@ Our support team will get back to you shortly.
 <td align="center" style="padding:30px">
 
 <a
-href="https://studynotion-edtech-project.vercel.app"
+href="https://studynotion-sandy-seven.vercel.app"
 
 style="
 background:#FFD60A;

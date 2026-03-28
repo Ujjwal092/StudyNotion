@@ -50,7 +50,7 @@ You have successfully enrolled in
 <td align="center" style="padding:30px">
 
 <a
-href="https://studynotion-edtech-project.vercel.app/dashboard"
+href="https://studynotion-sandy-seven.vercel.app"
 
 style="
 background:#FFD60A;
