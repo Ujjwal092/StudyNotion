@@ -6,6 +6,7 @@ const User = require("../models/User");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
 const CourseProgress = require("../models/CourseProgress");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
+const { redisClient } = require("../config/redis");
 
 // Function to create a new course
 
@@ -116,8 +117,12 @@ exports.createCourse = async (req, res) => {
       },
       { new: true },
     );
-    console.log("HEREEEEEEEE", categoryDetails2);
+    // console.log("HEREEEEEEEE", categoryDetails2);
+
     // Return the new course and a success message
+
+    //  Cache invalidate
+    await redisClient.del("courses:all");
     res.status(200).json({
       success: true,
       data: newCourse,
@@ -201,9 +206,27 @@ exports.editCourse = async (req, res) => {
     });
   }
 };
-// Get Course List
+
+// Get Course List redis
 exports.getAllCourses = async (req, res) => {
   try {
+    const cacheKey = "courses:all";
+
+    //  Check cache
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      console.log("⚡ Cache HIT");
+      return res.status(200).json({
+        success: true,
+        data: JSON.parse(cachedData),
+        source: "cache",
+      });
+    }
+
+    //  DB call
+    console.log("🐢 Cache MISS (DB call)");
+
     const allCourses = await Course.find(
       { status: "Published" },
       {
@@ -218,9 +241,14 @@ exports.getAllCourses = async (req, res) => {
       .populate("instructor")
       .exec();
 
+    //  Save in Redis
+    await redisClient.setEx(cacheKey, 600, JSON.stringify(allCourses));
+
+    //  Send response
     return res.status(200).json({
       success: true,
       data: allCourses,
+      source: "db",
     });
   } catch (error) {
     console.log(error);
@@ -231,58 +259,7 @@ exports.getAllCourses = async (req, res) => {
     });
   }
 };
-// Get One Single Course Details
-// exports.getCourseDetails = async (req, res) => {
-//   try {
-//     const { courseId } = req.body
-//     const courseDetails = await Course.findOne({
-//       _id: courseId,
-//     })
-//       .populate({
-//         path: "instructor",
-//         populate: {
-//           path: "additionalDetails",
-//         },
-//       })
-//       .populate("category")
-//       .populate("ratingAndReviews")
-//       .populate({
-//         path: "courseContent",
-//         populate: {
-//           path: "subSection",
-//         },
-//       })
-//       .exec()
-//     // console.log(
-//     //   "###################################### course details : ",
-//     //   courseDetails,
-//     //   courseId
-//     // );
-//     if (!courseDetails || !courseDetails.length) {
-//       return res.status(400).json({
-//         success: false,
-//         message: `Could not find course with id: ${courseId}`,
-//       })
-//     }
 
-//     if (courseDetails.status === "Draft") {
-//       return res.status(403).json({
-//         success: false,
-//         message: `Accessing a draft course is forbidden`,
-//       })
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       data: courseDetails,
-//     })
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     })
-//   }
-// }
 exports.getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.body;

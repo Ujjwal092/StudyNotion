@@ -9,6 +9,8 @@ const contactRoutes = require("./routes/Reach");
 
 const database = require("./config/database");
 const cookieParser = require("cookie-parser");
+const { connectRedis } = require("./config/redis");
+
 /**CORS (Cross-Origin Resource Sharing) ka use web development me frontend aur backend ko communicate karne ke liye hota hai jab dono alag domains / ports par chal rahe ho. */
 const cors = require("cors");
 const { cloudinaryConnect } = require("./config/cloudinary");
@@ -19,6 +21,8 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 //db connect
 database.connect();
+
+connectRedis();
 //middleware
 app.use(express.json());
 app.use(cookieParser());
